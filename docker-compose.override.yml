@@ -1,0 +1,17 @@
+# Este archivo (override) se aplica automáticamente por Docker Compose en entornos locales.
+# Se utiliza para añadir configuraciones específicas de desarrollo (como puertos expuestos y depuración) sin alterar la configuración base.
+services:
+  backend:
+    # Mapeo de puertos hacia la máquina host. Se usan variables de entorno (.env) para evitar conflictos si se levantan múltiples instancias.
+    ports:
+      - "${APP_PORT}:8080"
+      - "${DEBUG_PORT}:5005" # Puerto dedicado para la conexión del depurador (debugger) remoto.
+    environment:
+      # Inyectamos configuración a la JVM en tiempo de ejecución usando JAVA_TOOL_OPTIONS.
+      # Esto habilita el agente JDWP (Java Debug Wire Protocol) en el puerto 5005, permitiendo conectar un IDE (IntelliJ, VS Code, etc.) para depurar paso a paso.
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    #volumes:
+      # (Opcional) Montaje de directorios locales para habilitar recarga en caliente (hot-reload).
+      # Descomentar estas líneas si se compila localmente en la máquina host y se desea que los cambios se reflejen sin reconstruir la imagen de Docker.
+      # - ./target:/app/target 
+      # - ./src:/app/src

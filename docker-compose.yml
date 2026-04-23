@@ -1,0 +1,59 @@
+services:
+  backend:
+    # Construcción de la imagen: indica a Docker que compile el servicio usando el Dockerfile del directorio actual.
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    # Nombre asignado a la imagen resultante para su fácil identificación.
+    image: microservicio-java-backend:latest
+    # Política de reinicio: levanta el contenedor automáticamente tras reinicios del sistema o fallos, excepto si se detuvo manualmente.
+    restart: unless-stopped
+    environment:
+      # Inyección de variables de entorno. Los valores se resuelven dinámicamente desde un archivo .env externo por seguridad.
+      - SPRING_DATASOURCE_URL=${DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - dev-network
+    depends_on:
+      db:
+        # Orquestación estricta: el backend no arrancará hasta que el servicio 'db' pase exitosamente su 'healthcheck'.
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    # Nombre explícito para el contenedor, facilitando comandos en la terminal como 'docker logs dbs_postgresql'.
+    container_name: dbs_postgresql
+    environment:
+      # Credenciales iniciales que el contenedor usará para crear la base de datos la primera vez que arranque.
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      # Persistencia: monta un volumen en el directorio de datos interno de Postgres. Evita la pérdida de información al destruir el contenedor.
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Exposición de puertos (HOST:CONTENEDOR). Permite conectar herramientas de gestión externas (DBeaver, DataGrip, pgAdmin) desde la máquina local.
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          # Restricciones de hardware: evita que un fallo o sobrecarga en la BD agote todos los recursos (CPU/RAM) de la máquina host.
+          cpus: '1.0' # Límite a 1 núcleo de los 8 asignados en .wslconfig
+          memory: 2G  # Límite a 2GB de los 16GB globales
+    healthcheck:
+      # Verificación activa de salud: ejecuta 'pg_isready' periódicamente. Determina el estado real de la base de datos para habilitar el backend.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  dev-network:
+    # Red privada interna ('bridge'). Permite que 'backend' resuelva la IP de 'db' usando simplemente el nombre del servicio, aislando ambos del exterior.
+    driver: bridge
+
+volumes:
+  postgres_data:
+    # Declaración global del volumen para Postgres. Asegura que Docker gestione este espacio de almacenamiento persistente.
+    name: dev_postgres_data

@@ -1,0 +1,64 @@
+# =========================
+# Entorno y Seguridad
+# =========================
+.env
+.env.*
+*.env
+
+# Permitir que se suba la plantilla de configuración
+!.env.template
+
+# Permitir que se suba el archivo .gitignore para que otros desarrolladores puedan usarlo como referencia
+!.gitignore
+
+# =========================
+# Java & Spring Boot
+# =========================
+*.class
+*.log
+*.jar
+*.war
+*.nar
+*.ear
+
+# Logs de errores de la JVM
+hs_err_pid*
+replay_pid*
+
+# =========================
+# Maven
+# =========================
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# =========================
+# Entornos de Desarrollo (IDEs)
+# =========================
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# Eclipse
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# Visual Studio Code
+.vscode/
+
+# =========================
+# Archivos del Sistema Operativo
+# =========================
+.DS_Store
+Thumbs.db
